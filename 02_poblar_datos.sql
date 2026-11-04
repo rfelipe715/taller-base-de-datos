@@ -1,5 +1,5 @@
 -- ============================================================================
--- TecnoParts SpA  |  02_poblar_datos.sql
+-- TecnoParts SpA  |  02_poblar_datos.sql   (EP2)
 -- Datos de demostracion. Se ejecuta ANTES de crear los triggers (script 05),
 -- para que la carga historica no dispare el descuento automatico de stock.
 -- Las fechas son fijas (2026) para que el reporte entregue siempre el mismo
@@ -18,6 +18,25 @@ INSERT INTO proveedor VALUES (3, 'Pacific Components SpA',   'ordenes@pacific.cl
 INSERT INTO proveedor VALUES (4, 'Global Hardware Import',   'sales@globalhw.com');
 INSERT INTO proveedor VALUES (5, 'Nortec Distribucion',      'nortec@nortec.cl');
 
+-- Tablas complementarias: tipos de empleado y personal por sucursal.
+-- No las usan los procedimientos, packages ni triggers.
+INSERT INTO cargo VALUES (1, 'JEFE DE SUCURSAL', 1400000, 0);
+INSERT INTO cargo VALUES (2, 'VENDEDOR',          650000, 2);
+INSERT INTO cargo VALUES (3, 'CAJERO',            600000, 0);
+INSERT INTO cargo VALUES (4, 'BODEGUERO',         620000, 0);
+
+-- Primero los jefes (id_jefe NULL), despues el personal que depende de ellos
+INSERT INTO empleado VALUES ( 1,'10.100.100-1','Paula',   'Navarro', 'pnavarro@tecnoparts.cl','+56911110001',TO_DATE('01/03/2022','DD/MM/YYYY'),1,1,NULL,'S');
+INSERT INTO empleado VALUES ( 4,'10.400.400-4','Jorge',   'Salinas', 'jsalinas@tecnoparts.cl','+56911110004',TO_DATE('15/06/2022','DD/MM/YYYY'),1,2,NULL,'S');
+INSERT INTO empleado VALUES ( 6,'10.600.600-6','Carla',   'Vergara', 'cvergara@tecnoparts.cl','+56911110006',TO_DATE('01/02/2023','DD/MM/YYYY'),1,3,NULL,'S');
+INSERT INTO empleado VALUES ( 2,'10.200.200-2','Tomas',   'Riquelme','triquelme@tecnoparts.cl','+56911110002',TO_DATE('10/01/2024','DD/MM/YYYY'),2,1,1,'S');
+INSERT INTO empleado VALUES ( 3,'10.300.300-3','Fernanda','Pizarro', 'fpizarro@tecnoparts.cl','+56911110003',TO_DATE('05/05/2024','DD/MM/YYYY'),3,1,1,'S');
+INSERT INTO empleado VALUES ( 5,'10.500.500-5','Benjamin','Araya',   'baraya@tecnoparts.cl',  '+56911110005',TO_DATE('20/08/2023','DD/MM/YYYY'),2,2,4,'S');
+INSERT INTO empleado VALUES ( 7,'10.700.700-7','Josefa',  'Contreras','jcontreras@tecnoparts.cl','+56911110007',TO_DATE('03/03/2025','DD/MM/YYYY'),2,3,6,'S');
+INSERT INTO empleado VALUES ( 8,'10.800.800-8','Martin',  'Espinoza','mespinoza@tecnoparts.cl','+56911110008',TO_DATE('12/11/2024','DD/MM/YYYY'),2,4,1,'S');
+INSERT INTO empleado VALUES ( 9,'10.900.900-9','Lucas',   'Bravo',   'lbravo@tecnoparts.cl',  '+56911110009',TO_DATE('01/07/2023','DD/MM/YYYY'),4,1,1,'S');
+INSERT INTO empleado VALUES (10,'11.000.000-K','Isidora', 'Morales', 'imorales@tecnoparts.cl','+56911110010',TO_DATE('18/09/2025','DD/MM/YYYY'),4,2,4,'N');
+
 -- La categoria 9 queda sin meta cargada y la 7 con metas en cero:
 -- los dos casos que ejercitan las excepciones del bloque anonimo.
 INSERT INTO categoria VALUES (1, 'Procesadores',        'S');
@@ -33,17 +52,20 @@ INSERT INTO categoria VALUES (10,'Cables y Adaptadores','N');
 
 -- stock_actual se carga con el stock INICIAL y al final del script
 -- se le descuenta lo vendido.
+-- EP2: 104, 202 y 303 tienen un stock_critico que los deja EN o BAJO el
+-- minimo despues de las ventas, para que sp_generar_alertas_stock tenga
+-- casos que procesar.
 INSERT INTO producto VALUES (101,'CPU-R5-5600',   'AMD Ryzen 5 5600',            1,1,  95000, 139990, 25, 5,'S');
 INSERT INTO producto VALUES (102,'CPU-R7-5800X',  'AMD Ryzen 7 5800X',           1,1, 155000, 219990, 12, 4,'S');
 INSERT INTO producto VALUES (103,'CPU-I5-12400F', 'Intel Core i5-12400F',        1,2, 105000, 149990, 18, 5,'S');
-INSERT INTO producto VALUES (104,'CPU-I7-13700K', 'Intel Core i7-13700K',        1,2, 290000, 399990,  6, 3,'S');
+INSERT INTO producto VALUES (104,'CPU-I7-13700K', 'Intel Core i7-13700K',        1,2, 290000, 399990,  6, 5,'S');
 INSERT INTO producto VALUES (201,'GPU-RTX4060',   'GeForce RTX 4060 8GB',        2,3, 320000, 429990, 10, 3,'S');
-INSERT INTO producto VALUES (202,'GPU-RTX4070',   'GeForce RTX 4070 12GB',       2,3, 520000, 689990,  5, 2,'S');
+INSERT INTO producto VALUES (202,'GPU-RTX4070',   'GeForce RTX 4070 12GB',       2,3, 520000, 689990,  5, 4,'S');
 INSERT INTO producto VALUES (203,'GPU-RX7600',    'Radeon RX 7600 8GB',          2,4, 270000, 359990,  8, 3,'S');
 INSERT INTO producto VALUES (204,'GPU-GTX1650',   'GeForce GTX 1650 4GB',        2,4, 150000, 199990, 14, 4,'S');
 INSERT INTO producto VALUES (301,'MB-B550M',      'Placa Madre B550M AM4',       3,1,  68000,  99990, 20, 5,'S');
 INSERT INTO producto VALUES (302,'MB-B660M',      'Placa Madre B660M LGA1700',   3,2,  72000, 104990, 15, 5,'S');
-INSERT INTO producto VALUES (303,'MB-X670E',      'Placa Madre X670E AM5',       3,1, 230000, 319990,  4, 2,'S');
+INSERT INTO producto VALUES (303,'MB-X670E',      'Placa Madre X670E AM5',       3,1, 230000, 319990,  4, 3,'S');
 INSERT INTO producto VALUES (401,'RAM-16GB-3200', 'Memoria DDR4 16GB 3200MHz',   4,5,  32000,  49990, 40,10,'S');
 INSERT INTO producto VALUES (402,'RAM-32GB-3600', 'Memoria DDR4 32GB 3600MHz',   4,5,  68000,  99990, 22, 8,'S');
 INSERT INTO producto VALUES (403,'RAM-8GB-2666',  'Memoria DDR4 8GB 2666MHz',    4,5,  17000,  27990, 35,10,'S');
@@ -113,53 +135,61 @@ INSERT INTO venta (id_venta,id_cliente,id_sucursal,fecha_venta,estado) VALUES (2
 INSERT INTO venta (id_venta,id_cliente,id_sucursal,fecha_venta,estado) VALUES (21,10,1,TO_DATE('18/09/2026','DD/MM/YYYY'),'ANULADA');
 
 -- descuento_pct: NORMAL 0 | PREFERENTE 5 | EMPRESA 12
-INSERT INTO detalle_venta VALUES ( 1,1,101,1,139990, 0);
-INSERT INTO detalle_venta VALUES ( 1,2,301,1, 99990, 0);
-INSERT INTO detalle_venta VALUES ( 1,3,401,2, 49990, 0);
-INSERT INTO detalle_venta VALUES ( 2,1,201,1,429990, 5);
-INSERT INTO detalle_venta VALUES ( 2,2,602,1, 89990, 5);
-INSERT INTO detalle_venta VALUES ( 3,1,103,3,149990,12);
-INSERT INTO detalle_venta VALUES ( 3,2,302,3,104990,12);
-INSERT INTO detalle_venta VALUES ( 3,3,501,3, 74990,12);
-INSERT INTO detalle_venta VALUES ( 4,1,802,2, 16990, 0);
-INSERT INTO detalle_venta VALUES ( 4,2,801,1, 36990, 0);
-INSERT INTO detalle_venta VALUES ( 4,3,805,3,  4990, 0);
-INSERT INTO detalle_venta VALUES ( 5,1,204,1,199990, 0);
-INSERT INTO detalle_venta VALUES ( 5,2,601,1, 52990, 0);
-INSERT INTO detalle_venta VALUES ( 6,1,202,1,689990, 5);
-INSERT INTO detalle_venta VALUES ( 6,2,303,1,319990, 5);
-INSERT INTO detalle_venta VALUES ( 6,3,402,2, 99990, 5);
-INSERT INTO detalle_venta VALUES ( 7,1,502,5, 32990,12);
-INSERT INTO detalle_venta VALUES ( 7,2,503,2, 59990,12);
-INSERT INTO detalle_venta VALUES ( 8,1,701,1, 45990, 0);
-INSERT INTO detalle_venta VALUES ( 8,2,601,1, 52990, 0);
-INSERT INTO detalle_venta VALUES ( 8,3,403,2, 27990, 0);
-INSERT INTO detalle_venta VALUES ( 9,1,104,1,399990, 5);
-INSERT INTO detalle_venta VALUES ( 9,2,603,1,119990, 5);
-INSERT INTO detalle_venta VALUES (10,1,804,1,149990, 0);
-INSERT INTO detalle_venta VALUES (10,2,803,1, 29990, 0);
-INSERT INTO detalle_venta VALUES (11,1,501,4, 74990,12);
-INSERT INTO detalle_venta VALUES (11,2,401,6, 49990,12);
-INSERT INTO detalle_venta VALUES (11,3,805,10, 4990,12);
-INSERT INTO detalle_venta VALUES (12,1,203,1,359990, 0);
-INSERT INTO detalle_venta VALUES (12,2,702,1, 29990, 0);
-INSERT INTO detalle_venta VALUES (13,1,102,1,219990, 0);
-INSERT INTO detalle_venta VALUES (13,2,402,1, 99990, 0);
-INSERT INTO detalle_venta VALUES (14,1,302,2,104990,12);
-INSERT INTO detalle_venta VALUES (14,2,103,2,149990,12);
-INSERT INTO detalle_venta VALUES (15,1,504,1,139990, 0);
-INSERT INTO detalle_venta VALUES (15,2,703,1, 64990, 0);
-INSERT INTO detalle_venta VALUES (16,1,801,4, 36990,12);
-INSERT INTO detalle_venta VALUES (16,2,802,4, 16990,12);
-INSERT INTO detalle_venta VALUES (17,1,201,1,429990, 5);
-INSERT INTO detalle_venta VALUES (17,2,602,1, 89990, 5);
-INSERT INTO detalle_venta VALUES (17,3,701,1, 45990, 5);
-INSERT INTO detalle_venta VALUES (18,1,901,1, 29990, 5);
-INSERT INTO detalle_venta VALUES (18,2,902,1, 94990, 5);
-INSERT INTO detalle_venta VALUES (19,1,101,1,139990, 0);
-INSERT INTO detalle_venta VALUES (19,2,201,1,429990, 0);
-INSERT INTO detalle_venta VALUES (20,1,501,2, 74990, 5);
-INSERT INTO detalle_venta VALUES (21,1,202,1,689990, 0);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES ( 1,1,101,1,139990, 0);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES ( 1,2,301,1, 99990, 0);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES ( 1,3,401,2, 49990, 0);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES ( 2,1,201,1,429990, 5);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES ( 2,2,602,1, 89990, 5);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES ( 3,1,103,3,149990,12);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES ( 3,2,302,3,104990,12);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES ( 3,3,501,3, 74990,12);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES ( 4,1,802,2, 16990, 0);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES ( 4,2,801,1, 36990, 0);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES ( 4,3,805,3,  4990, 0);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES ( 5,1,204,1,199990, 0);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES ( 5,2,601,1, 52990, 0);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES ( 6,1,202,1,689990, 5);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES ( 6,2,303,1,319990, 5);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES ( 6,3,402,2, 99990, 5);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES ( 7,1,502,5, 32990,12);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES ( 7,2,503,2, 59990,12);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES ( 8,1,701,1, 45990, 0);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES ( 8,2,601,1, 52990, 0);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES ( 8,3,403,2, 27990, 0);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES ( 9,1,104,1,399990, 5);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES ( 9,2,603,1,119990, 5);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES (10,1,804,1,149990, 0);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES (10,2,803,1, 29990, 0);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES (11,1,501,4, 74990,12);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES (11,2,401,6, 49990,12);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES (11,3,805,10, 4990,12);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES (12,1,203,1,359990, 0);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES (12,2,702,1, 29990, 0);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES (13,1,102,1,219990, 0);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES (13,2,402,1, 99990, 0);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES (14,1,302,2,104990,12);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES (14,2,103,2,149990,12);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES (15,1,504,1,139990, 0);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES (15,2,703,1, 64990, 0);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES (16,1,801,4, 36990,12);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES (16,2,802,4, 16990,12);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES (17,1,201,1,429990, 5);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES (17,2,602,1, 89990, 5);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES (17,3,701,1, 45990, 5);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES (18,1,901,1, 29990, 5);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES (18,2,902,1, 94990, 5);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES (19,1,101,1,139990, 0);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES (19,2,201,1,429990, 0);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES (20,1,501,2, 74990, 5);
+INSERT INTO detalle_venta (id_venta,nro_linea,id_producto,cantidad,precio_unitario,descuento_pct) VALUES (21,1,202,1,689990, 0);
+
+-- Costo historico de cada linea (columna nueva en la EP2).
+-- En la operacion normal lo completa el trigger trg_valida_detalle; aqui los
+-- triggers aun no existen, por eso se copia desde el producto.
+UPDATE detalle_venta d
+   SET d.costo_unitario = (SELECT p.costo_unitario
+                             FROM producto p
+                            WHERE p.id_producto = d.id_producto);
 
 -- Totales de la cabecera calculados desde el detalle (IVA 19%)
 UPDATE venta v
@@ -204,6 +234,20 @@ UPDATE producto p
              WHERE d.id_producto = p.id_producto
                AND v.estado = 'EMITIDA'), 0);
 
+-- Complementaria: vendedor que atendio cada venta (uno por sucursal)
+UPDATE venta
+   SET id_empleado = CASE id_sucursal WHEN 1 THEN 2
+                                      WHEN 2 THEN 5
+                                      WHEN 3 THEN 7
+                                      ELSE 8 END;
+
+-- Complementaria: ordenes de compra para reponer los productos criticos.
+-- Quedan PENDIENTES: no modifican el stock.
+INSERT INTO orden_compra VALUES (1, 2, 9, TO_DATE('25/09/2026','DD/MM/YYYY'), NULL, 'PENDIENTE', 1450000);
+INSERT INTO detalle_orden_compra VALUES (1, 104, 5, 290000);
+INSERT INTO orden_compra VALUES (2, 1, 9, TO_DATE('25/09/2026','DD/MM/YYYY'), NULL, 'PENDIENTE',  920000);
+INSERT INTO detalle_orden_compra VALUES (2, 303, 4, 230000);
+
 COMMIT;
 
 PROMPT Datos cargados.
@@ -212,4 +256,6 @@ UNION ALL SELECT 'producto',         COUNT(*) FROM producto
 UNION ALL SELECT 'cliente',          COUNT(*) FROM cliente
 UNION ALL SELECT 'venta',            COUNT(*) FROM venta
 UNION ALL SELECT 'detalle_venta',    COUNT(*) FROM detalle_venta
-UNION ALL SELECT 'movimiento_stock', COUNT(*) FROM movimiento_stock;
+UNION ALL SELECT 'movimiento_stock', COUNT(*) FROM movimiento_stock
+UNION ALL SELECT 'empleado',         COUNT(*) FROM empleado
+UNION ALL SELECT 'orden_compra',     COUNT(*) FROM orden_compra;
